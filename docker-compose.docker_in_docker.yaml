@@ -1,0 +1,27 @@
+services:
+  aica:
+    build:
+      context: .
+      dockerfile: Dockerfile.docker_in_docker
+    image: docker_in_docker_base_image
+    container_name: docker_in_docker_container
+    network_mode: host
+    gpus: all
+    ipc: host
+    volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw # GUI  
+    - ${XAUTHORITY}:/root/.Xauthority:rw # GUI
+    - <host_path_to_docker_volumes>:/var/lib/docker
+    - ./vs-code:/vs-code
+    - /etc/resolv.conf:/etc/resolv.conf #DNS
+
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY} # GUI
+      - QT_X11_NO_MITSHM=1 # GUI
+      - XAUTHORITY=/root/.Xauthority # GUI
+      - ROS_DOMAIN_ID=0
+    tty: true # Terminal
+    command: /bin/bash -c "/usr/local/bin/start-dind.sh & code --no-sandbox --user-data-dir=/vs-code --extensions-dir=/vs-code && bash" # Start Docker in Docker and VS Code, then open a bash terminal
+
+    
