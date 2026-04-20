@@ -1,0 +1,11 @@
+# nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+FROM cuda_base_image AS python_dnn_image
+
+# Base image already provides Python build dependencies and repository setup.
+
+RUN python3 -m pip install torch tensorflow scikit-learn keras 
+RUN python3 -m pip install ultralytics --no-deps
+RUN python3 -m pip install torchvision
+RUN python3 -m pip install cupy
+
+RUN pip3 install "numpy<2" 

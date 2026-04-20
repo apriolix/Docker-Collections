@@ -1,0 +1,31 @@
+# nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+FROM cuda_base_image AS ros_cuda_image
+
+SHELL ["/bin/bash", "-c"]
+
+# Build-Arguments
+ARG DEBIAN_FRONTEND=noninteractive
+ARG ROS_DISTRO=humble
+
+ENV ROS_DISTRO=${ROS_DISTRO}
+ENV DEBIAN_FRONTEND=${DEBIAN_FRONTEND}
+
+# Install ROS 2 desktop
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" \
+       > /etc/apt/sources.list.d/ros2.list \
+    && apt-get update && apt-get install -y --no-install-recommends ros-${ROS_DISTRO}-desktop \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setting up ROS2 in /etc/profile.d for global use (global)
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /etc/profile.d/ros.sh 
+
+
+# Setting up ROS_FAST_DDS
+COPY ./fast_dds_ip4.xml /etc/ros/fast_dds_ip4.xml
+ENV FASTRTPS_DEFAULT_PROFILES_FILE=/etc/ros/fast_dds_ip4.xml
+
+# Debugging with cmake
+RUN apt-get update && apt-get install -y gdb
+
+RUN apt-get update && apt-get upgrade -y

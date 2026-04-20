@@ -1,0 +1,16 @@
+FROM cuda_base_image AS base
+
+FROM ros_cuda_image AS ros
+FROM ros_realsense_cuda_image AS realsense
+FROM python_dnn_image AS dnn
+FROM opencv_cuda_image AS opencv
+FROM ros_webots_cuda_image AS webots
+
+# Finale Stage
+FROM cuda_base_image AS final
+
+COPY --from=ros / / 
+COPY --from=realsense / /
+COPY --from=dnn / /
+COPY --from=opencv / /
+COPY --from=webots / /
