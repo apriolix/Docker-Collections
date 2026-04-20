@@ -30,7 +30,7 @@ WORKDIR /${REALSENSE_ROS_WS}/src
 RUN git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-master 
 WORKDIR /${REALSENSE_ROS_WS}
 
-RUN apt install -y python3-colcon-core python3-colcon-common-extensions
+RUN apt update && apt install -y python3-colcon-core python3-colcon-common-extensions
 
 
 RUN apt-get install python3-rosdep -y

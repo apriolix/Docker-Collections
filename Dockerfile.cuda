@@ -1,11 +1,12 @@
 # nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
 FROM nvidia/cuda@sha256:ef33852f3d321c9aedee5103f57b247114407d2e8382fe291a7ea5b2e6cb94ce AS cuda_base_image
 
-# Repository setup and core tools
+# Repository setup and core tools required by all derived stages
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common \
     && add-apt-repository universe \
     && add-apt-repository multiverse \
     && apt-get update && apt-get install -y --no-install-recommends \
+      # Repository and package management
       ca-certificates \
       gnupg \
       lsb-release \
@@ -13,25 +14,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       wget \
       git \
       software-properties-common \
+      # Locale setup and basic debugging support
       locales \
       gdb \
+      # Core build tools used by ROS, Webots, OpenCV and Python extensions
       build-essential \
       cmake \
       pkg-config \
       unzip \
       yasm \
       checkinstall \
+      # Python runtime + build dependencies for python_dnn, ROS and OpenCV
       python3 \
       python3-pip \
       python3-venv \
       python3-dev \
       python3-argcomplete \
       python3-numpy \
+      # Common native libraries used across ROS, OpenCV, Webots and DNN workloads
       libeigen3-dev \
       libboost-all-dev \
       libssl-dev \
       libxml2-dev \
       libcurl4-openssl-dev \
+      # Multimedia and GUI support for OpenCV, ROS tools and Webots
       libpng-dev \
       libjpeg-dev \
       libtiff-dev \
@@ -43,6 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       libglib2.0-0 \
       libgtk-3-0 \
       libgtk-3-dev \
+      # Video codec support required by OpenCV video backends
       libxvidcore-dev \
       libx264-dev \
       libfaac-dev \
@@ -50,9 +57,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       libtheora-dev \
       libopencore-amrnb-dev \
       libopencore-amrwb-dev \
+      # Camera and video capture libraries for OpenCV and ROS nodes
       libdc1394-dev \
       libv4l-dev \
       v4l-utils \
+      # Performance, math and serialization libraries for OpenCV/DNN/ROS
       libtbb2 \
       libtbb-dev \
       libatlas-base-dev \
@@ -64,6 +73,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       libgphoto2-dev \
       libhdf5-dev \
       doxygen \
+      # OpenCL support for OpenCV and CUDA/OpenCL hybrid workflows
       ocl-icd-opencl-dev \
       opencl-headers \
       ocl-icd-libopencl1 \
@@ -77,6 +87,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     && rm -rf /var/lib/apt/lists/*
 
 ENV LANG=en_US.UTF-8
+
+# Needed for Opencv
+RUN pip3 install "numpy<2" 
 
 # Upgrade system packages
 RUN apt-get update && apt-get upgrade -y
