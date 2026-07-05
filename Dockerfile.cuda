@@ -62,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       libv4l-dev \
       v4l-utils \
       # Performance, math and serialization libraries for OpenCV/DNN/ROS
-      libtbb2 \
+      libtbbmalloc2 \
       libtbb-dev \
       libatlas-base-dev \
       gfortran \
@@ -74,14 +74,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
       libhdf5-dev \
       doxygen \
       # OpenCL support for OpenCV and CUDA/OpenCL hybrid workflows
-      ocl-icd-opencl-dev \
-      opencl-headers \
-      ocl-icd-libopencl1 \
       clinfo \
+      opencl-headers \
+      intel-opencl-icd \
+      ocl-icd-opencl-dev \
+      mesa-opencl-icd \
+      python3-pyopencl \
+      # nvidia-opencl-common \
+      # nvidia-opencl-icd \
+      ocl-icd-libopencl1 \
       nvidia-opencl-dev \
+      pocl-opencl-icd \
+      # rocm-opencl-icd \
       libclblas-dev \
       libclfft-dev \
-      pocl-opencl-icd \
     && locale-gen en_US en_US.UTF-8 \
     && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
@@ -89,7 +95,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
 ENV LANG=en_US.UTF-8
 
 # Needed for Opencv
-RUN pip3 install "numpy<2" 
+#RUN pip3 install "numpy<2" 
 
 # Upgrade system packages
-RUN apt-get update && apt-get upgrade -y
+# RUN apt-get update && apt-get upgrade -y
+ENV DEBIAN_FRONTEND=noninteractive
+
+# COPY /dev/** /dev/**
+RUN apt update && apt install nvidia-driver-535 -y
+
+# SYCL / oneAPI toolchain for DPC++ and SYCL development
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      clang \
+      lld \
+      llvm \
+      libomp-dev \
+      libc++-dev \
+      libc++abi-dev \
+      ninja-build \
+      ca-certificates \
+      curl \
+      gpg && \
+    wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor --yes -o /usr/share/keyrings/oneapi-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" > /etc/apt/sources.list.d/oneapi.list && \
+    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo 'source /opt/intel/oneapi/setvars.sh > /dev/null 2>&1 || true' >> /etc/bash.bashrc && \
+    echo 'export PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/bash.bashrc && \
+    echo 'ENV PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/environment
+
+# RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \ | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list && \
+#   wget -qO - https://developer.codeplay.com/apt/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/codeplay-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/codeplay-keyring.gpg] https://developer.codeplay.com/apt all main" | sudo tee /etc/apt/sources.list.d/codeplay.list && \
+#   apt update && \
+#   apt install -y oneapi-nvidia oneapi-nvidia-11.7 oneapi-nvidia-11.8 oneapi-nvidia-12.0 oneapi-nvidia-12.1 \
+#     install oneapi-nvidia-12.2 oneapi-nvidia-12.3 oneapi-nvidia-12.4 oneapi-nvidia-12.5 oneapi-nvidia-12.6

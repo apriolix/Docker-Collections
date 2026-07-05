@@ -1,0 +1,27 @@
+services:
+  aica:
+    build:
+      context: .
+      dockerfile: Dockerfile.cuda
+    image:  dockerfile-cuda
+    container_name: dockerfile-cuda
+    network_mode: host
+    gpus: all
+    ipc: host
+    volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw # GUI  
+    # - ${XAUTHORITY}:/root/.Xauthority:rw # GUI
+    # - <host_path_to_docker_volumes>:/var/lib/docker
+    # - ./vs-code:/vs-code
+    # - /etc/resolv.conf:/etc/resolv.conf #DNS
+    - /dev:/dev:rw
+
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY} # GUI
+      - QT_X11_NO_MITSHM=1 # GUI
+      # - XAUTHORITY=/root/.Xauthority # GUI
+      - ROS_DOMAIN_ID=0
+    tty: true # Terminal
+
+    
