@@ -1,5 +1,5 @@
 # nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
-FROM nvidia/cuda@sha256:ef33852f3d321c9aedee5103f57b247114407d2e8382fe291a7ea5b2e6cb94ce AS cuda_base_image
+FROM nvidia/cuda:12.9.2-cudnn-devel-ubuntu24.04 AS cuda_base_image
 
 # Repository setup and core tools required by all derived stages
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common \
@@ -119,13 +119,41 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     wget -qO- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | gpg --dearmor --yes -o /usr/share/keyrings/oneapi-archive-keyring.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" > /etc/apt/sources.list.d/oneapi.list && \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo 'source /opt/intel/oneapi/setvars.sh > /dev/null 2>&1 || true' >> /etc/bash.bashrc && \
-    echo 'export PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/bash.bashrc && \
-    echo 'ENV PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/environment
+    rm -rf /var/lib/apt/lists/*
 
-# RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \ | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list && \
-#   wget -qO - https://developer.codeplay.com/apt/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/codeplay-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/codeplay-keyring.gpg] https://developer.codeplay.com/apt all main" | sudo tee /etc/apt/sources.list.d/codeplay.list && \
-#   apt update && \
-#   apt install -y oneapi-nvidia oneapi-nvidia-11.7 oneapi-nvidia-11.8 oneapi-nvidia-12.0 oneapi-nvidia-12.1 \
-#     install oneapi-nvidia-12.2 oneapi-nvidia-12.3 oneapi-nvidia-12.4 oneapi-nvidia-12.5 oneapi-nvidia-12.6
+ENV ONEAPI_ROOT=/opt/intel/oneapi
+ENV PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}
+ENV LD_LIBRARY_PATH=/opt/intel/oneapi/compiler/latest/lib:/opt/intel/oneapi/compiler/latest/lib/intel64:${LD_LIBRARY_PATH}
+ENV ONEAPI_DEVICE_SELECTOR=opencl:*
+RUN echo 'if [ -f /opt/intel/oneapi/setvars.sh ]; then source /opt/intel/oneapi/setvars.sh > /dev/null 2>&1; fi' > /etc/profile.d/oneapi.sh && \
+    chmod +x /etc/profile.d/oneapi.sh
+
+# RUN wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/71180075-e4e3-4c6f-bbbb-19017ed0cf7d/intel-oneapi-toolkit-2026.0.0.198_offline.sh \
+#     && sudo sh ./intel-oneapi-toolkit-2026.0.0.198_offline.sh -a --silent --cli --eula accept && \
+#     apt update && \
+#     apt install cmake pkg-config build-essential
+
+# Installing Intel GPU driver packages for usage of Intel GPUs !This version needs at least ubuntu 24.x!
+RUN apt-get update && add-apt-repository -y ppa:kobuk-team/intel-graphics && apt-get update && \
+    # Compute related packages
+    apt-get install -y libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc \
+    # Media-related packages
+    intel-media-va-driver-non-free libmfx-gen1.2 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo \
+    # Packages for use of PyTorch
+    libze-dev intel-ocloc \
+    # Hardware RayTracing support
+    libze-intel-gpu-raytracing
+
+
+# RUN echo 'source /opt/intel/oneapi/setvars.sh > /dev/null 2>&1 || true' >> /etc/bash.bashrc && \
+#     echo 'export PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/bash.bashrc && \
+#     echo 'ENV PATH=/opt/intel/oneapi/compiler/latest/bin:${PATH}' >> /etc/environment
+
+
+# # OneAPI Cuda-Support (needs Cuda Toolschain aka base image and installed cuda drivers)
+# RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+#    | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list \
+#    && wget -qO - https://developer.codeplay.com/apt/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/codeplay-keyring.gpg > /dev/null && echo "deb [signed-by=/usr/share/keyrings/codeplay-keyring.gpg] https://developer.codeplay.com/apt all main" | sudo tee /etc/apt/sources.list.d/codeplay.list \
+#    && apt update && \
+#    apt install oneapi-nvidia  oneapi-nvidia-11.7 oneapi-nvidia-11.8 oneapi-nvidia-12.0  oneapi-nvidia-12.1 oneapi-nvidia-12.2 oneapi-nvidia-12.3 \
+#    oneapi-nvidia-12.4 oneapi-nvidia-12.5 oneapi-nvidia-12.6
