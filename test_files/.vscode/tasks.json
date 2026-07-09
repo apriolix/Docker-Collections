@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build SYCL C++",
+      "type": "shell",
+      "command": "icpx",
+      "args": [
+        "-fsycl",
+        "-std=c++17",
+        "sycl_test_scipt.cpp",
+        "-o",
+        "test_sycl"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$gcc",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "Run SYCL test binary",
+      "type": "shell",
+      "command": "./test_sycl",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Build SYCL C++",
+      "problemMatcher": []
+    }
+  ]
+}

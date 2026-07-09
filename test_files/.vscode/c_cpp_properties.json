@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/opt/intel/oneapi/compiler/2026.1/include",
+        "/opt/intel/oneapi/compiler/2026.1/bin/compiler/../../include",
+        "/opt/intel/oneapi/dpl/2022.13/include",
+        "/opt/intel/oneapi/tbb/2023.1/env/../include",
+        "/usr/include/eigen3",
+        "/usr/local/include/eigen3",
+        "/usr/include/**"
+      ],
+      "compilerPath": "/usr/bin/icpx",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-clang-x64",
+      "compilerArgs": [
+        "-fsycl",
+        "-std=c++17"
+      ]
+    }
+  ],
+  "version": 4
+}
