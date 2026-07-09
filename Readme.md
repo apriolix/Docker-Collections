@@ -40,3 +40,9 @@ This repository contains a set of CUDA-based Dockerfiles for robotics, computer 
 ## Purpose
 
 The repository is designed to centralize shared system dependencies in a single base image and keep derived images focused on their specific tooling and runtime requirements.
+
+## Execut Sycl programs
+- To debug a program use `icpx -fsycl -std=c++17 test.cpp -o test_sycl` then run it with `./test_sycl`.
+- To run the programm with explicite use of Opencl backend use ``ONEAPI_DEVICE_SELECTOR=opencl:* ./test_sycl``
+- To find available plattforms run ``clinfo`` or ``sycl-ls``. An Kernel can be compiled if under clinfo the ``COMILER_AVAIABLE`` tag is true.
+
